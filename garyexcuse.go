@@ -2,6 +2,7 @@ package garyexcuse
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -18,6 +19,28 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	excuse := buildExcuse(leads, perps, delays)
 
 	fmt.Fprintf(w, excuse)
+}
+
+func alexaHandler(w http.ResponseWriter, r *http.Request) {
+	leads, perps, delays := loadParts()
+	excuse := buildExcuse(leads, perps, delays)
+
+	repromptOutputSpeech := OutputSpeech{Type: "PlainText", Text: "You can say: What would Gary say"}
+	reprompt := Reprompt{OutputSpeech: repromptOutputSpeech}
+	card := Card{Type: "Simple", Title: "SessionSpeechlet - Gary Excuse", Content: "SessionSpeechley - " + excuse}
+	outputSpeech := OutputSpeech{Type: "PlainText", Text: excuse}
+	responseBody := ResponseBody{Card: card, OutputSpeech: outputSpeech, Reprompt: reprompt, ShouldEndSession: true}
+	alexaResponse := AlexaResponse{Version: "1.0", Response: responseBody}
+
+	js, err := json.Marshal(alexaResponse)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }
 
 func readFile(path string, done chan []string) {
