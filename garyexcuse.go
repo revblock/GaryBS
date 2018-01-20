@@ -1,4 +1,4 @@
-package main
+package garyexcuse
 
 import (
 	"bufio"
@@ -8,6 +8,17 @@ import (
 	"os"
 	"time"
 )
+
+func init() {
+	http.HandleFunc("/", indexHandler)
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	leads, perps, delays := loadParts()
+	excuse := buildExcuse(leads, perps, delays)
+
+	fmt.Fprintf(w, excuse)
+}
 
 func readFile(path string, done chan []string) {
 	f, _ := os.Open(path)
@@ -54,16 +65,4 @@ func buildExcuse(leads []string, perps []string, delays []string) string {
 	lead, delay, perp := <-leadDone, <-delayDone, <-perpDone
 
 	return lead + " " + perp + " " + delay
-}
-
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	leads, perps, delays := loadParts()
-	excuse := buildExcuse(leads, perps, delays)
-
-	fmt.Fprintf(w, excuse)
-}
-
-func main() {
-	http.HandleFunc("/", indexHandler)
-	http.ListenAndServe(":80", nil)
 }
