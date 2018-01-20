@@ -12,6 +12,7 @@ import (
 
 func init() {
 	http.HandleFunc("/", indexHandler)
+	http.HandleFunc("/alexa/", alexaHandler)
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
